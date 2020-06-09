@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.hj.s1.board.notice.NoticeRepository">
+	<insert id="setInsert" parameterType="NoticeVO" useGeneratedKeys="true" keyProperty="num">
+		insert into notice values(#{num}, #{title}, #{writer}, #{contents}, now(), 0)
+	</insert>
+	
+	<update id="setUpdate" parameterType="NoticeVO">
+		update notice set title=#{title}, contents=#{contents} where num=#{num} 
+	</update>
+	
+	<delete id="setDelete" parameterType="NoticeVO">
+		delete from notice where num=#{num}
+	</delete>
+	
+	<select id="getSelectList" parameterType="Pager" resultType="NoticeVO">
+		select * from notice where
+		<choose>
+			<when test="kind == 'contents'"> contents </when>
+			<when test="kind == 'writer'"> writer </when>
+			<otherwise> title </otherwise>
+		</choose>
+		like concat('%',#{search},'%') 
+		order by num desc limit #{startRow}, #{perPage}		
+	</select>
+	
+	<select id="getSelectOne" parameterType="NoticeVO" resultType="NoticeVO">
+		select * from notice where num=#{num}
+	</select>
+	
+	<select id="getTotalCount" parameterType="Pager" resultType="Long">
+		select count(num) from notice where
+		<choose>
+			<when test="kind == 'contents'"> contents </when>
+			<when test="kind == 'writer'"> writer </when>
+			<otherwise> title </otherwise>
+		</choose>
+		like concat('%',#{search},'%') ;
+	</select>
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.hj.s1.board.qna.QnaRepository">
+	<insert id="setReply" parameterType="QnaVO" useGeneratedKeys="true" keyProperty="num">
+		insert into qna values(
+			0, #{title}, #{writer}, #{contents}, now(), 0,
+			(select ref from (select * from qna where num=#{num}) Q),
+			(select step from (select * from qna where num=#{num}) Q)+1,
+			(select depth from (select * from qna where num=#{num}) Q)+1
+		)
+	</insert>
+	<update id="setReplyUpdate" parameterType="QnaVO">
+		update qna set step = step+1 
+		where ref = (select ref from (select * from qna where num=#{num}) Q) and 
+			  step > (select step from (select * from qna where num=#{num}) Q) 
+	</update>	
+	
+	<insert id="setInsert" parameterType="QnaVO" useGeneratedKeys="true" keyProperty="num">
+		insert into qna values(#{num}, #{title}, #{writer}, #{contents}, now(), 0, 0, 0, 0)
+	</insert>
+	
+	<update id="setRef" parameterType="QnaVO">
+		update qna set ref=#{num} where num=#{num}
+	</update> 
+		
+	<update id="setUpdate" parameterType="QnaVO">
+		update qna set title=#{title}, contents=#{contents} where num=#{num} 
+	</update>
+	
+	<delete id="setDelete" parameterType="QnaVO">
+		delete from qna where num=#{num}
+	</delete>
+	
+	<select id="getSelectList" parameterType="Pager" resultType="QnaVO">
+		select * from qna where
+		<choose>
+			<when test="kind == 'contents'"> contents </when>
+			<when test="kind == 'writer'"> writer </when>
+			<otherwise> title </otherwise>
+		</choose>
+		like concat('%',#{search},'%') 
+		order by num desc limit #{startRow}, #{perPage}		
+	</select>
+	
+	<select id="getSelectOne" parameterType="QnaVO" resultType="QnaVO">
+		select * from qna where num=#{num}
+	</select>
+	
+	<select id="getTotalCount" parameterType="Pager" resultType="Long">
+		select count(num) from qna where
+		<choose>
+			<when test="kind == 'contents'"> contents </when>
+			<when test="kind == 'writer'"> writer </when>
+			<otherwise> title </otherwise>
+		</choose>
+		like concat('%',#{search},'%') ;
+	</select>
+</mapper>
